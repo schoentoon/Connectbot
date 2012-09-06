@@ -20,7 +20,6 @@ package com.schoentoon.connectbot;
 import java.util.List;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -34,11 +33,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -51,6 +46,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
 import com.schoentoon.connectbot.bean.HostBean;
 import com.schoentoon.connectbot.bean.PortForwardBean;
 import com.schoentoon.connectbot.service.TerminalBridge;
@@ -63,7 +62,7 @@ import com.schoentoon.connectbot.util.HostDatabase;
  *
  * @author Kenny Root
  */
-public class PortForwardListActivity extends ListActivity {
+public class PortForwardListActivity extends SherlockListActivity {
 	public final static String TAG = "ConnectBot.PortForwardListActivity";
 
 	private static final int LISTENER_CYCLE_TIME = 500;
@@ -112,20 +111,16 @@ public class PortForwardListActivity extends ListActivity {
 		this.hostdb = new HostDatabase(this);
 		host = hostdb.findHostById(hostId);
 
-		{
-			final String nickname = host != null ? host.getNickname() : null;
-			final Resources resources = getResources();
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		final String nickname = host != null ? host.getNickname() : null;
+		final Resources resources = getResources();
 
-			if (nickname != null) {
-				this.setTitle(String.format("%s: %s (%s)",
-						resources.getText(R.string.app_name),
-						resources.getText(R.string.title_port_forwards_list),
-						nickname));
-			} else {
-				this.setTitle(String.format("%s: %s",
-						resources.getText(R.string.app_name),
-						resources.getText(R.string.title_port_forwards_list)));
-			}
+		if (nickname != null) {
+			getSupportActionBar().setSubtitle(String.format("%s (%s)",
+					resources.getText(R.string.title_port_forwards_list),
+					nickname));
+		} else {
+			getSupportActionBar().setSubtitle(R.string.title_port_forwards_list);
 		}
 
 		connection = new ServiceConnection() {
@@ -167,10 +162,21 @@ public class PortForwardListActivity extends ListActivity {
 	}
 
 	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
 		MenuItem add = menu.add(R.string.portforward_menu_add);
+		add.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		add.setIcon(android.R.drawable.ic_menu_add);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
@@ -239,7 +245,7 @@ public class PortForwardListActivity extends ListActivity {
 		return true;
 	}
 
-	@Override
+/*	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 		// Create menu to handle deleting and editing port forward
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
@@ -359,7 +365,7 @@ public class PortForwardListActivity extends ListActivity {
 				return true;
 			}
 		});
-	}
+	}*/
 
 	protected Handler updateHandler = new Handler() {
 		@Override

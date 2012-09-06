@@ -158,7 +158,6 @@ public class HostListActivity extends SherlockListActivity implements OnItemLong
 		super.onCreate(icicle);
 		setContentView(R.layout.act_hostlist);
 
-		setTitle(R.string.app_name);
 		getSupportActionBar().setSubtitle(R.string.title_hosts_list);
 
 		// check for eula agreement

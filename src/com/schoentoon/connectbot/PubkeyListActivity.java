@@ -147,7 +147,6 @@ public class PubkeyListActivity extends SherlockListActivity implements EventLis
 		setContentView(R.layout.act_pubkeylist);
 		getListView().setOnItemLongClickListener(this);
 
-		setTitle(R.string.app_name);
 		getSupportActionBar().setSubtitle(R.string.title_pubkey_list);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

@@ -40,16 +40,18 @@ import android.os.IBinder;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.schoentoon.connectbot.bean.HostBean;
 import com.schoentoon.connectbot.service.TerminalBridge;
 import com.schoentoon.connectbot.service.TerminalManager;
 import com.schoentoon.connectbot.util.HostDatabase;
 import com.schoentoon.connectbot.util.PubkeyDatabase;
 
-public class HostEditorActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+public class HostEditorActivity extends SherlockPreferenceActivity implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {
 		protected final String table;
 		protected final long id;
@@ -238,6 +240,8 @@ public class HostEditorActivity extends PreferenceActivity implements OnSharedPr
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		getSupportActionBar().setSubtitle("Host editor");
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		long hostId = this.getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
 
@@ -328,6 +332,16 @@ public class HostEditorActivity extends PreferenceActivity implements OnSharedPr
 			this.pubkeydb.close();
 			this.pubkeydb = null;
 		}
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			NavUtils.navigateUpTo(this, new Intent(this, HostListActivity.class));
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 
 	private void updateSummaries() {
