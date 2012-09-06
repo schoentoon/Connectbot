@@ -20,14 +20,10 @@ package com.schoentoon.connectbot;
 import java.util.Arrays;
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -37,6 +33,10 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.Spinner;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
 import com.schoentoon.connectbot.util.Colors;
 import com.schoentoon.connectbot.util.HostDatabase;
 import com.schoentoon.connectbot.util.UberColorPickerDialog;
@@ -46,7 +46,7 @@ import com.schoentoon.connectbot.util.UberColorPickerDialog.OnColorChangedListen
  * @author Kenny Root
  *
  */
-public class ColorsActivity extends Activity implements OnItemClickListener, OnColorChangedListener, OnItemSelectedListener {
+public class ColorsActivity extends SherlockActivity implements OnItemClickListener, OnColorChangedListener, OnItemSelectedListener {
 	private GridView mColorGrid;
 	private Spinner mFgSpinner;
 	private Spinner mBgSpinner;
@@ -65,9 +65,8 @@ public class ColorsActivity extends Activity implements OnItemClickListener, OnC
 
 		setContentView(R.layout.act_colors);
 
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_colors)));
+		getSupportActionBar().setSubtitle(R.string.title_colors);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		mColorScheme = HostDatabase.DEFAULT_COLOR_SCHEME;
 
@@ -108,6 +107,16 @@ public class ColorsActivity extends Activity implements OnItemClickListener, OnC
 
 		if (hostdb == null)
 			hostdb = new HostDatabase(this);
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 
 	private class ColorsAdapter extends BaseAdapter {
@@ -305,6 +314,7 @@ public class ColorsActivity extends Activity implements OnItemClickListener, OnC
 		reset.setAlphabeticShortcut('r');
 		reset.setNumericShortcut('1');
 		reset.setIcon(android.R.drawable.ic_menu_revert);
+		reset.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		reset.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// Reset each individual color to defaults.

@@ -23,7 +23,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -44,6 +43,8 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.schoentoon.connectbot.bean.PubkeyBean;
 import com.schoentoon.connectbot.util.EntropyDialog;
 import com.schoentoon.connectbot.util.EntropyView;
@@ -51,7 +52,7 @@ import com.schoentoon.connectbot.util.OnEntropyGatheredListener;
 import com.schoentoon.connectbot.util.PubkeyDatabase;
 import com.schoentoon.connectbot.util.PubkeyUtils;
 
-public class GeneratePubkeyActivity extends Activity implements OnEntropyGatheredListener {
+public class GeneratePubkeyActivity extends SherlockActivity implements OnEntropyGatheredListener {
 	public final static String TAG = "ConnectBot.GeneratePubkeyActivity";
 
 	final static int DEFAULT_BITS = 1024;
@@ -79,6 +80,8 @@ public class GeneratePubkeyActivity extends Activity implements OnEntropyGathere
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		getSupportActionBar().setSubtitle("Generate key");
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		setContentView(R.layout.act_generatepubkey);
 
@@ -184,6 +187,16 @@ public class GeneratePubkeyActivity extends Activity implements OnEntropyGathere
 			}
 		});
 
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 
 	private void checkEntries() {

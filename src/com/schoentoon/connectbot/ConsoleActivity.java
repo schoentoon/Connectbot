@@ -20,7 +20,6 @@ package com.schoentoon.connectbot;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
@@ -43,9 +42,6 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -68,6 +64,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
 import com.schoentoon.connectbot.bean.SelectionArea;
 import com.schoentoon.connectbot.service.PromptHelper;
 import com.schoentoon.connectbot.service.TerminalBridge;
@@ -77,7 +77,7 @@ import com.schoentoon.connectbot.util.PreferenceConstants;
 
 import de.mud.terminal.vt320;
 
-public class ConsoleActivity extends Activity {
+public class ConsoleActivity extends SherlockActivity {
 	public final static String TAG = "ConnectBot.ConsoleActivity";
 
 	protected static final int REQUEST_EDIT = 1;
@@ -637,6 +637,7 @@ public class ConsoleActivity extends Activity {
 			disconnect.setTitle(R.string.console_menu_close);
 		disconnect.setEnabled(activeTerminal);
 		disconnect.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+		disconnect.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		disconnect.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				// disconnect or close the currently visible session
@@ -808,13 +809,6 @@ public class ConsoleActivity extends Activity {
 	}
 
 	@Override
-	public void onOptionsMenuClosed(Menu menu) {
-		super.onOptionsMenuClosed(menu);
-
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-	}
-
-	@Override
 	public void onStart() {
 		super.onStart();
 
@@ -906,6 +900,7 @@ public class ConsoleActivity extends Activity {
 		super.onStop();
 
 		unbindService(connection);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
 	protected void shiftCurrentTerminal(final int direction) {

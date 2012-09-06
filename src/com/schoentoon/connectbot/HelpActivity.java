@@ -19,7 +19,6 @@ package com.schoentoon.connectbot;
 
 import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -29,11 +28,14 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
+
 /**
  * @author Kenny Root
  *
  */
-public class HelpActivity extends Activity {
+public class HelpActivity extends SherlockActivity {
 	public final static String TAG = "ConnectBot.HelpActivity";
 
 	public final static String HELPDIR = "help";
@@ -43,10 +45,7 @@ public class HelpActivity extends Activity {
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		setContentView(R.layout.act_help);
-
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_help)));
+		getSupportActionBar().setSubtitle(R.string.title_help);
 
 		AssetManager am = this.getAssets();
 		LinearLayout content = (LinearLayout)this.findViewById(R.id.topics);
@@ -73,5 +72,15 @@ public class HelpActivity extends Activity {
 			// TODO Auto-generated catch block
 			Log.e(TAG, "couldn't get list of help assets", e);
 		}
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 }

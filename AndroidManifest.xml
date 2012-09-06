@@ -65,7 +65,6 @@
 		<activity android:name=".HostEditorActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".PortForwardListActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".WizardActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".ColorsActivity" android:configChanges="keyboardHidden|orientation" />
@@ -75,7 +74,7 @@
 			android:description="@string/service_desc" />
 
 		<activity android:name=".ConsoleActivity" android:configChanges="keyboardHidden|orientation"
-			android:theme="@style/NoTitle" android:windowSoftInputMode="stateAlwaysVisible|adjustResize"
+			android:windowSoftInputMode="stateAlwaysVisible|adjustResize"
 			android:launchMode="singleTop">
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />

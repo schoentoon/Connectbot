@@ -17,17 +17,18 @@
 
 package com.schoentoon.connectbot;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.schoentoon.connectbot.util.HelpTopicView;
 
 /**
  * @author Kenny Root
  *
  */
-public class HelpTopicActivity extends Activity {
+public class HelpTopicActivity extends SherlockActivity {
 	public final static String TAG = "ConnectBot.HelpActivity";
 
 	@Override
@@ -37,13 +38,21 @@ public class HelpTopicActivity extends Activity {
 
 		String topic = getIntent().getStringExtra(Intent.EXTRA_TITLE);
 
-		this.setTitle(String.format("%s: %s - %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_help),
-				topic));
+		getSupportActionBar().setSubtitle(String.format("%s - %s", getResources().getText(R.string.title_help), topic));
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		HelpTopicView helpTopic = (HelpTopicView) findViewById(R.id.topic_text);
 
 		helpTopic.setTopic(topic);
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 }

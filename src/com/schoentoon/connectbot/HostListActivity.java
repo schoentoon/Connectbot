@@ -160,14 +160,6 @@ public class HostListActivity extends SherlockListActivity implements OnItemLong
 
 		getSupportActionBar().setSubtitle(R.string.title_hosts_list);
 
-		// check for eula agreement
-		this.prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-		boolean agreed = prefs.getBoolean(PreferenceConstants.EULA, false);
-		if(!agreed) {
-			this.startActivityForResult(new Intent(this, WizardActivity.class), REQUEST_EULA);
-		}
-
 		this.makingShortcut = Intent.ACTION_CREATE_SHORTCUT.equals(getIntent().getAction())
 								|| Intent.ACTION_PICK.equals(getIntent().getAction());
 
@@ -175,6 +167,7 @@ public class HostListActivity extends SherlockListActivity implements OnItemLong
 		this.hostdb = new HostDatabase(this);
 		ListView list = getListView();
 		list.setOnItemLongClickListener(this);
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		this.sortedByColor = prefs.getBoolean(PreferenceConstants.SORT_BY_COLOR, false);
 
