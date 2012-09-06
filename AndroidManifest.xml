@@ -37,6 +37,7 @@
 		android:icon="@drawable/icon"
 		android:label="@string/app_name"
 		android:description="@string/app_desc"
+		android:theme="@style/Theme.Sherlock"
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true">
@@ -69,7 +70,7 @@
 		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".ColorsActivity" android:configChanges="keyboardHidden|orientation" />
 
-		<service android:name="org.connectbot.service.TerminalManager"
+		<service android:name=".service.TerminalManager"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/service_desc" />
 

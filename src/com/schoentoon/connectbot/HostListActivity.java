@@ -21,7 +21,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -38,23 +37,26 @@ import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.ActionMode;
+import com.actionbarsherlock.view.ActionMode.Callback;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
 import com.schoentoon.connectbot.bean.HostBean;
 import com.schoentoon.connectbot.service.TerminalBridge;
 import com.schoentoon.connectbot.service.TerminalManager;
@@ -62,7 +64,7 @@ import com.schoentoon.connectbot.transport.TransportFactory;
 import com.schoentoon.connectbot.util.HostDatabase;
 import com.schoentoon.connectbot.util.PreferenceConstants;
 
-public class HostListActivity extends ListActivity {
+public class HostListActivity extends SherlockListActivity implements OnItemLongClickListener {
 	public final static int REQUEST_EDIT = 1;
 
 	public final static int REQUEST_EULA = 2;
@@ -156,9 +158,8 @@ public class HostListActivity extends ListActivity {
 		super.onCreate(icicle);
 		setContentView(R.layout.act_hostlist);
 
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_hosts_list)));
+		setTitle(R.string.app_name);
+		getSupportActionBar().setSubtitle(R.string.title_hosts_list);
 
 		// check for eula agreement
 		this.prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -173,7 +174,8 @@ public class HostListActivity extends ListActivity {
 
 		// connect with hosts database and populate list
 		this.hostdb = new HostDatabase(this);
-		ListView list = this.getListView();
+		ListView list = getListView();
+		list.setOnItemLongClickListener(this);
 
 		this.sortedByColor = prefs.getBoolean(PreferenceConstants.SORT_BY_COLOR, false);
 
@@ -288,6 +290,7 @@ public class HostListActivity extends ListActivity {
 		});
 
 		MenuItem keys = menu.add(R.string.list_menu_pubkeys);
+		keys.setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT|MenuItem.SHOW_AS_ACTION_ALWAYS);
 		keys.setIcon(android.R.drawable.ic_lock_lock);
 		keys.setIntent(new Intent(HostListActivity.this, PubkeyListActivity.class));
 
@@ -296,6 +299,7 @@ public class HostListActivity extends ListActivity {
 		colors.setIntent(new Intent(HostListActivity.this, ColorsActivity.class));
 
 		MenuItem settings = menu.add(R.string.list_menu_settings);
+		settings.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
 		settings.setIntent(new Intent(HostListActivity.this, SettingsActivity.class));
 
@@ -307,73 +311,88 @@ public class HostListActivity extends ListActivity {
 
 	}
 
+	public boolean onItemLongClick(AdapterView<?> l, View v, int position, long id) {
+		HostBean host = (HostBean) getListAdapter().getItem(position);
+		startActionMode(new HostSettings(host));
+		return true;
+	}
 
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+	private class HostSettings implements Callback {
+		public HostSettings(HostBean host) {
+			this.host = host;
+		}
 
-		// create menu to handle hosts
+		public boolean onCreateActionMode(final ActionMode mode, Menu menu) {
+			MenuItem connect = menu.add(R.string.list_host_disconnect);
+			final TerminalBridge bridge = bound.getConnectedBridge(host);
+			connect.setEnabled((bridge != null));
+			connect.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					bridge.dispatchDisconnect(true);
+					updateHandler.sendEmptyMessage(-1);
+					mode.finish();
+					return true;
+				}
+			});
+			MenuItem edit = menu.add(R.string.list_host_edit);
+			edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					Intent intent = new Intent(HostListActivity.this, HostEditorActivity.class);
+					intent.putExtra(Intent.EXTRA_TITLE, host.getId());
+					HostListActivity.this.startActivityForResult(intent, REQUEST_EDIT);
+					mode.finish();
+					return true;
+				}
+			});
+			MenuItem portForwards = menu.add(R.string.list_host_portforwards);
+			portForwards.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					Intent intent = new Intent(HostListActivity.this, PortForwardListActivity.class);
+					intent.putExtra(Intent.EXTRA_TITLE, host.getId());
+					HostListActivity.this.startActivityForResult(intent, REQUEST_EDIT);
+					mode.finish();
+					return true;
+				}
+			});
+			if (!TransportFactory.canForwardPorts(host.getProtocol()))
+				portForwards.setEnabled(false);
 
-		// create menu to handle deleting and sharing lists
-		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final HostBean host = (HostBean) this.getListView().getItemAtPosition(info.position);
+			MenuItem delete = menu.add(R.string.list_host_delete);
+			delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					// prompt user to make sure they really want this
+					new AlertDialog.Builder(HostListActivity.this)
+						.setMessage(getString(R.string.delete_message, host.getNickname()))
+						.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int which) {
+							// make sure we disconnect
+								if(bridge != null)
+									bridge.dispatchDisconnect(true);
 
-		menu.setHeaderTitle(host.getNickname());
-
-		// edit, disconnect, delete
-		MenuItem connect = menu.add(R.string.list_host_disconnect);
-		final TerminalBridge bridge = bound.getConnectedBridge(host);
-		connect.setEnabled((bridge != null));
-		connect.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
-				bridge.dispatchDisconnect(true);
-				updateHandler.sendEmptyMessage(-1);
-				return true;
-			}
-		});
-
-		MenuItem edit = menu.add(R.string.list_host_edit);
-		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
-				Intent intent = new Intent(HostListActivity.this, HostEditorActivity.class);
-				intent.putExtra(Intent.EXTRA_TITLE, host.getId());
-				HostListActivity.this.startActivityForResult(intent, REQUEST_EDIT);
-				return true;
-			}
-		});
-
-		MenuItem portForwards = menu.add(R.string.list_host_portforwards);
-		portForwards.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
-				Intent intent = new Intent(HostListActivity.this, PortForwardListActivity.class);
-				intent.putExtra(Intent.EXTRA_TITLE, host.getId());
-				HostListActivity.this.startActivityForResult(intent, REQUEST_EDIT);
-				return true;
-			}
-		});
-		if (!TransportFactory.canForwardPorts(host.getProtocol()))
-			portForwards.setEnabled(false);
-
-		MenuItem delete = menu.add(R.string.list_host_delete);
-		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
-				// prompt user to make sure they really want this
-				new AlertDialog.Builder(HostListActivity.this)
-					.setMessage(getString(R.string.delete_message, host.getNickname()))
-					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-						// make sure we disconnect
-							if(bridge != null)
-								bridge.dispatchDisconnect(true);
-
-							hostdb.deleteHost(host);
-							updateHandler.sendEmptyMessage(-1);
-						}
+								hostdb.deleteHost(host);
+								updateHandler.sendEmptyMessage(-1);
+							}
 						})
-					.setNegativeButton(R.string.delete_neg, null).create().show();
+						.setNegativeButton(R.string.delete_neg, null).create().show();
+					mode.finish();
+					return true;
+				}
+			});
+			return true;
+		}
 
-				return true;
-			}
-		});
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			return false;
+		}
+
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+			return false;
+		}
+
+		public void onDestroyActionMode(ActionMode mode) {
+		}
+
+		private HostBean host;
 	}
 
 	/**
